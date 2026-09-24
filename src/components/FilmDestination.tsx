@@ -91,7 +91,7 @@ export const FilmDestination: React.FC<FilmDestinationProps> = ({
         {/* Featured diary selections */}
         <div className="mt-5 pt-4 border-t border-[#1c1b18]/6 space-y-2">
           <div className="text-[10px] uppercase tracking-widest text-[#9a958b] font-medium">
-            Recent Log Highlights
+            FAVORUITE MOVIES
           </div>
           <div className="space-y-1.5">
             {filmData.featuredWorks.slice(0, 2).map((item, idx) => (
