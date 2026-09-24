@@ -88,7 +88,7 @@ export const PORTFOLIO_CONFIG: PortfolioConfig = {
       buttonLabel: 'OPEN INSTAGRAM',
       url: 'https://www.instagram.com/playlist_bgm/?stkn=bGZreTVkcXFxNHFj',
       shortcutKey: 'M',
-      description: 'Modern music lover. 🎧\\nGood music, quiet moments, happy mind.\\nThat’s my kind of peace. 🤍',
+      description: 'A modern music lover who believes music makes everything better.\\n\\nAlways listening, discovering, and finding a little peace in sound.',
       tags: ['Music Lover', 'Background Score Addict', 'Audio Player'],
       featuredWorks: [
         { title: 'Nallaru Po From Dude', type: 'Song', duration: '2:15', note: '' },
