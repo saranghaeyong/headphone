@@ -11,6 +11,9 @@
 class AcousticEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private ambientGain: GainNode | null = null;
+  private ambientOscillators: OscillatorNode[] = [];
+  private ambientActive: boolean = false;
   private isMuted: boolean = false;
 
   constructor() {
@@ -35,6 +38,63 @@ class AcousticEngine {
     }
 
     return this.ctx;
+  }
+
+  public startAmbient() {
+    const ctx = this.initContext();
+    if (!ctx || !this.masterGain || this.ambientActive) return;
+
+    const now = ctx.currentTime;
+    this.ambientGain = ctx.createGain();
+    this.ambientGain.gain.setValueAtTime(0.0001, now);
+    this.ambientGain.gain.linearRampToValueAtTime(0.055, now + 2.5);
+    this.ambientGain.connect(this.masterGain);
+
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.setValueAtTime(850, now);
+    lowpass.Q.setValueAtTime(0.35, now);
+    lowpass.connect(this.ambientGain);
+
+    const frequencies = [110, 164.81, 220];
+    this.ambientOscillators = frequencies.map((frequency, index) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = index === 2 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(frequency, now);
+      gain.gain.setValueAtTime(index === 2 ? 0.12 : 0.08, now);
+      osc.connect(gain);
+      gain.connect(lowpass);
+      osc.start(now);
+      return osc;
+    });
+
+    this.ambientActive = true;
+  }
+
+  public stopAmbient() {
+    if (!this.ctx || !this.ambientGain || !this.ambientActive) return;
+    const now = this.ctx.currentTime;
+    const gain = this.ambientGain;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.linearRampToValueAtTime(0.0001, now + 1.2);
+    this.ambientOscillators.forEach((osc) => {
+      try { osc.stop(now + 1.25); } catch {}
+    });
+    this.ambientOscillators = [];
+    this.ambientActive = false;
+    window.setTimeout(() => gain.disconnect(), 1400);
+    this.ambientGain = null;
+  }
+
+  public toggleAmbient(): boolean {
+    if (this.ambientActive) this.stopAmbient();
+    else this.startAmbient();
+    return this.ambientActive;
+  }
+
+  public getIsAmbientActive(): boolean {
+    return this.ambientActive;
   }
 
   public setMuted(muted: boolean) {
