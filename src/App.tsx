@@ -5,19 +5,25 @@ import { UI } from './components/UI';
 import { CustomCursor } from './components/CustomCursor';
 import { LoadingScreen } from './components/LoadingScreen';
 import { PORTFOLIO_CONFIG } from './config/portfolio';
-import { CursorMode, ActiveDestination } from './types';
+import { CursorMode, ActiveDestination, HeadphoneState } from './types';
 
 export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [loadProgress, setLoadProgress] = useState(25);
-  const [isExploded, setIsExploded] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(30);
+
+  // EXPLICIT STATE MACHINE:
+  // Must strictly initialize as 'assembled'.
+  // Transitions: 'assembled' -> 'exploding' -> 'exploded' (and reverse for reset)
+  const [headphoneState, setHeadphoneState] =
+    useState<HeadphoneState>('assembled');
+
   const [activeDestination, setActiveDestination] = useState<ActiveDestination>(null);
   const [cursorMode, setCursorMode] = useState<CursorMode>('default');
   const [cursorText, setCursorText] = useState<string | null>(null);
   const [keyboardRot, setKeyboardRot] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
 
-  // Keyboard rotation interval tracker
+  // Keyboard rotation tracker
   const activeKeys = useRef<{ [key: string]: boolean }>({});
 
   // Detect mobile viewport
@@ -30,14 +36,15 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Subtle loading sequence for the 3D asset
+  // Subtle asset loading simulation - stays strictly in 'assembled' state!
   useEffect(() => {
-    const p1 = setTimeout(() => setLoadProgress(65), 250);
-    const p2 = setTimeout(() => setLoadProgress(95), 550);
+    const p1 = setTimeout(() => setLoadProgress(70), 200);
+    const p2 = setTimeout(() => setLoadProgress(100), 500);
     const p3 = setTimeout(() => {
-      setLoadProgress(100);
       setIsLoaded(true);
-    }, 850);
+      // Explicitly ensure 'assembled' state after loading
+      setHeadphoneState('assembled');
+    }, 700);
 
     return () => {
       clearTimeout(p1);
@@ -54,13 +61,31 @@ export default function App() {
     window.open(PORTFOLIO_CONFIG.destinations.music.url, '_blank', 'noopener,noreferrer');
   }, []);
 
-  const handleToggleExplode = useCallback(() => {
-    setIsExploded((prev) => !prev);
+  // Click on Headphone to trigger disassembly
+  const handleTriggerExplode = useCallback(() => {
+    // Ignore click if already exploding or already exploded
+    setHeadphoneState((current) => {
+      if (current === 'assembled') {
+        return 'exploding';
+      }
+      return current;
+    });
   }, []);
 
-  const handleReset = useCallback(() => {
-    setIsExploded(false);
-    setActiveDestination(null);
+  // Reset interaction to reconstruct headphone back to assembled position
+  const handleTriggerReset = useCallback(() => {
+    setHeadphoneState((current) => {
+      if (current === 'exploded') {
+        setActiveDestination(null);
+        return 'exploding';
+      }
+      return current;
+    });
+  }, []);
+
+  // Callback when GSAP animation completes
+  const handleAnimationFinished = useCallback((nextState: 'assembled' | 'exploded') => {
+    setHeadphoneState(nextState);
   }, []);
 
   const handleSetCursorMode = useCallback((mode: CursorMode, text?: string | null) => {
@@ -69,14 +94,13 @@ export default function App() {
   }, []);
 
   // Keyboard Accessibility:
-  // - Arrow keys rotate headphone
-  // - Enter / Space triggers explosion
-  // - Escape resets scene
-  // - F opens Films
-  // - M opens Music
+  // - Arrow keys: rotate headphone
+  // - Enter / Space: triggers explosion
+  // - Escape: resets scene
+  // - F: opens Films
+  // - M: opens Music
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
         return;
       }
@@ -85,10 +109,10 @@ export default function App() {
 
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        handleToggleExplode();
+        handleTriggerExplode();
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        handleReset();
+        handleTriggerReset();
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
         handleOpenFilms();
@@ -97,7 +121,6 @@ export default function App() {
         handleOpenMusic();
       }
 
-      // Check arrows
       let kx = 0;
       let ky = 0;
       if (activeKeys.current['ArrowUp']) kx -= 1;
@@ -127,7 +150,7 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [handleToggleExplode, handleReset, handleOpenFilms, handleOpenMusic]);
+  }, [handleTriggerExplode, handleTriggerReset, handleOpenFilms, handleOpenMusic]);
 
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-paper select-none">
@@ -143,8 +166,10 @@ export default function App() {
 
       {/* Primary 3D Spatial Canvas Scene */}
       <Scene
-        isExploded={isExploded}
-        onToggleExplode={handleToggleExplode}
+        headphoneState={headphoneState}
+        onTriggerExplode={handleTriggerExplode}
+        onTriggerReset={handleTriggerReset}
+        onAnimationFinished={handleAnimationFinished}
         onOpenFilms={handleOpenFilms}
         onOpenMusic={handleOpenMusic}
         onSetCursorMode={handleSetCursorMode}
@@ -156,7 +181,7 @@ export default function App() {
 
       {/* 2D/3D Destination Cards Layer (FILMS & MUSIC) */}
       <NavigationObject
-        isExploded={isExploded}
+        isExploded={headphoneState === 'exploded'}
         activeDestination={activeDestination}
         setActiveDestination={setActiveDestination}
         onSetCursorMode={handleSetCursorMode}
@@ -167,9 +192,8 @@ export default function App() {
 
       {/* Top Bar, Hero Name, and Bottom Accessibility Footer */}
       <UI
-        isExploded={isExploded}
-        onToggleExplode={handleToggleExplode}
-        onReset={handleReset}
+        headphoneState={headphoneState}
+        onReset={handleTriggerReset}
         onSetCursorMode={handleSetCursorMode}
         onOpenFilms={handleOpenFilms}
         onOpenMusic={handleOpenMusic}

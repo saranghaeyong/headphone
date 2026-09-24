@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import {
@@ -7,14 +7,17 @@ import {
   WiredCablePart,
 } from './HeadphoneParts';
 import {
-  useExplosionAnimation,
-  REST_TRANSFORMS,
+  assembledPositions,
+  playExplosionAnimation,
+  playReassembleAnimation,
 } from './ExplosionAnimation';
-import { CursorMode, ActiveDestination } from '../types';
+import { CursorMode, ActiveDestination, HeadphoneState } from '../types';
 
 interface HeadphonesProps {
-  isExploded: boolean;
-  onToggleExplode: () => void;
+  headphoneState: HeadphoneState;
+  onTriggerExplode: () => void;
+  onTriggerReset: () => void;
+  onAnimationFinished: (nextState: 'assembled' | 'exploded') => void;
   onOpenFilms: () => void;
   onOpenMusic: () => void;
   onSetCursorMode: (mode: CursorMode, text?: string | null) => void;
@@ -25,8 +28,9 @@ interface HeadphonesProps {
 }
 
 export const Headphones: React.FC<HeadphonesProps> = ({
-  isExploded,
-  onToggleExplode,
+  headphoneState,
+  onTriggerExplode,
+  onAnimationFinished,
   onOpenFilms,
   onOpenMusic,
   onSetCursorMode,
@@ -35,13 +39,19 @@ export const Headphones: React.FC<HeadphonesProps> = ({
   keyboardRot,
   isMobile,
 }) => {
-  const rootGroupRef = useRef<THREE.Group>(null);
-  const headbandRef = useRef<THREE.Group>(null);
-  const leftCupRef = useRef<THREE.Group>(null);
-  const rightCupRef = useRef<THREE.Group>(null);
-  const cableRef = useRef<THREE.Group>(null);
+  // Parent group: controls overall rotation, overall scale, and overall floating
+  const headphoneRootRef = useRef<THREE.Group>(null);
 
-  // Drag rotation and inertia state
+  // Individual child groups: control explosion / disassembly positions
+  const headbandGroupRef = useRef<THREE.Group>(null);
+  const leftCupGroupRef = useRef<THREE.Group>(null);
+  const rightCupGroupRef = useRef<THREE.Group>(null);
+  const cableGroupRef = useRef<THREE.Group>(null);
+
+  // Track previous state to determine whether 'exploding' is exploding outward or returning
+  const prevStateRef = useRef<HeadphoneState>(headphoneState);
+
+  // Drag rotation and inertia state on HeadphoneRoot
   const isDragging = useRef(false);
   const pointerDownPos = useRef({ x: 0, y: 0, time: 0 });
   const rotationVelocity = useRef({ x: 0, y: 0 });
@@ -51,23 +61,36 @@ export const Headphones: React.FC<HeadphonesProps> = ({
   // Hover states for individual parts
   const [hoveredPart, setHoveredPart] = useState<'headband' | 'leftCup' | 'rightCup' | 'cable' | null>(null);
 
-  // Hook up GSAP explosion timeline
-  useExplosionAnimation(
-    {
-      headbandRef,
-      leftCupRef,
-      rightCupRef,
-      cableRef,
-    },
-    {
-      isExploded,
-      duration: 0.8,
+  // Trigger GSAP animations ONLY when transitioning to 'exploding'
+  useEffect(() => {
+    const prevState = prevStateRef.current;
+    prevStateRef.current = headphoneState;
+
+    if (headphoneState === 'exploding') {
+      const targets = {
+        headbandGroup: headbandGroupRef.current,
+        leftCupGroup: leftCupGroupRef.current,
+        rightCupGroup: rightCupGroupRef.current,
+        cableGroup: cableGroupRef.current,
+      };
+
+      if (prevState === 'assembled') {
+        // Explode outward: assembled -> exploding -> exploded
+        playExplosionAnimation(targets, () => {
+          onAnimationFinished('exploded');
+        });
+      } else if (prevState === 'exploded') {
+        // Return back: exploded -> exploding -> assembled
+        playReassembleAnimation(targets, () => {
+          onAnimationFinished('assembled');
+        });
+      }
     }
-  );
+  }, [headphoneState, onAnimationFinished]);
 
   // Inertial rotation and subtle floating in R3F useFrame loop
   useFrame((state, delta) => {
-    if (!rootGroupRef.current) return;
+    if (!headphoneRootRef.current) return;
 
     // Apply keyboard offset
     targetRotation.current.x += keyboardRot.x * delta * 2;
@@ -75,15 +98,14 @@ export const Headphones: React.FC<HeadphonesProps> = ({
 
     // Damping towards target rotation
     if (!isDragging.current) {
-      // Natural inertia damping
       targetRotation.current.x += rotationVelocity.current.x;
       targetRotation.current.y += rotationVelocity.current.y;
       rotationVelocity.current.x *= 0.92;
       rotationVelocity.current.y *= 0.92;
 
-      // When exploded, softly attract toward center orientation so cards are aligned
-      if (isExploded) {
-        targetRotation.current.x = THREE.MathUtils.lerp(targetRotation.current.x, 0.05, 0.04);
+      // When exploded, softly attract toward center orientation
+      if (headphoneState === 'exploded') {
+        targetRotation.current.x = THREE.MathUtils.lerp(targetRotation.current.x, 0.04, 0.04);
         targetRotation.current.y = THREE.MathUtils.lerp(targetRotation.current.y, 0, 0.04);
       }
     }
@@ -107,15 +129,15 @@ export const Headphones: React.FC<HeadphonesProps> = ({
       0.12
     );
 
-    // Subtle breathing / floating animation when assembled
+    // Subtle floating animation of the COMPLETE assembled headphone
     const time = state.clock.getElapsedTime();
-    const floatY = isExploded ? 0 : Math.sin(time * 1.4) * 0.06;
-    const floatTilt = isExploded ? 0 : Math.cos(time * 0.9) * 0.02;
+    const floatY = headphoneState === 'exploded' ? 0 : Math.sin(time * 1.4) * 0.05;
+    const floatTilt = headphoneState === 'exploded' ? 0 : Math.cos(time * 0.9) * 0.015;
 
-    rootGroupRef.current.position.y = floatY;
-    rootGroupRef.current.rotation.x = currentRotation.current.x + floatTilt;
-    rootGroupRef.current.rotation.y = currentRotation.current.y;
-    rootGroupRef.current.rotation.z = floatTilt * 0.5;
+    headphoneRootRef.current.position.y = floatY;
+    headphoneRootRef.current.rotation.x = currentRotation.current.x + floatTilt;
+    headphoneRootRef.current.rotation.y = currentRotation.current.y;
+    headphoneRootRef.current.rotation.z = floatTilt * 0.5;
   });
 
   // Pointer drag & click handling
@@ -156,19 +178,19 @@ export const Headphones: React.FC<HeadphonesProps> = ({
     );
     const duration = Date.now() - pointerDownPos.current.time;
 
-    // Fast click with minimal motion = trigger action!
-    if (dragDistance < 10 && duration < 350) {
-      if (!isExploded) {
-        onToggleExplode();
+    // Detect click only if total motion is minimal and duration is short
+    if (dragDistance < 7 && duration < 350) {
+      if (headphoneState === 'assembled') {
+        onTriggerExplode();
       }
     }
   };
 
   const handleCupClick = (side: 'left' | 'right', e: any) => {
     e.stopPropagation();
-    if (!isExploded) {
-      onToggleExplode();
-    } else {
+    if (headphoneState === 'assembled') {
+      onTriggerExplode();
+    } else if (headphoneState === 'exploded') {
       if (side === 'left') {
         onOpenFilms();
       } else {
@@ -178,26 +200,31 @@ export const Headphones: React.FC<HeadphonesProps> = ({
   };
 
   return (
+    /* HeadphoneRoot: controls overall rotation, overall scale, and overall floating animation */
     <group
-      ref={rootGroupRef}
+      ref={headphoneRootRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       scale={isMobile ? 0.78 : 1.0}
     >
-      {/* Headband Part */}
+      {/* 
+        Child Group: HeadbandGroup
+        Initial position: assembledPositions.headband = (0, 0, 0)
+      */}
       <group
+        ref={headbandGroupRef}
         position={[
-          REST_TRANSFORMS.headband.x,
-          REST_TRANSFORMS.headband.y,
-          REST_TRANSFORMS.headband.z,
+          assembledPositions.headband.x,
+          assembledPositions.headband.y,
+          assembledPositions.headband.z,
         ]}
         onPointerOver={(e) => {
           e.stopPropagation();
           setHoveredPart('headband');
-          if (!isExploded) {
+          if (headphoneState === 'assembled') {
             onSetCursorMode('click', 'DISASSEMBLE');
-          } else {
+          } else if (headphoneState === 'exploded') {
             onSetCursorMode('rotate', 'ROTATE');
           }
         }}
@@ -207,28 +234,29 @@ export const Headphones: React.FC<HeadphonesProps> = ({
         }}
         onClick={(e) => {
           e.stopPropagation();
-          if (!isExploded) onToggleExplode();
+          if (headphoneState === 'assembled') onTriggerExplode();
         }}
       >
-        <HeadbandPart
-          ref={headbandRef}
-          isHovered={hoveredPart === 'headband'}
-        />
+        <HeadbandPart isHovered={hoveredPart === 'headband'} />
       </group>
 
-      {/* Left Ear Cup Part (FILMS) */}
+      {/* 
+        Child Group: LeftCupGroup (FILMS Destination)
+        Initial position: assembledPositions.leftCup = (0, 0, 0)
+      */}
       <group
+        ref={leftCupGroupRef}
         position={[
-          REST_TRANSFORMS.leftCup.x,
-          REST_TRANSFORMS.leftCup.y,
-          REST_TRANSFORMS.leftCup.z,
+          assembledPositions.leftCup.x,
+          assembledPositions.leftCup.y,
+          assembledPositions.leftCup.z,
         ]}
         onPointerOver={(e) => {
           e.stopPropagation();
           setHoveredPart('leftCup');
-          if (!isExploded) {
+          if (headphoneState === 'assembled') {
             onSetCursorMode('click', 'DISASSEMBLE');
-          } else {
+          } else if (headphoneState === 'exploded') {
             onSetCursorMode('open', 'OPEN FILMS');
             setActiveDestination('films');
           }
@@ -243,25 +271,28 @@ export const Headphones: React.FC<HeadphonesProps> = ({
         onClick={(e) => handleCupClick('left', e)}
       >
         <EarCupPart
-          ref={leftCupRef}
           side="left"
           isHovered={hoveredPart === 'leftCup' || activeDestination === 'films'}
         />
       </group>
 
-      {/* Right Ear Cup Part (MUSIC) */}
+      {/* 
+        Child Group: RightCupGroup (MUSIC Destination)
+        Initial position: assembledPositions.rightCup = (0, 0, 0)
+      */}
       <group
+        ref={rightCupGroupRef}
         position={[
-          REST_TRANSFORMS.rightCup.x,
-          REST_TRANSFORMS.rightCup.y,
-          REST_TRANSFORMS.rightCup.z,
+          assembledPositions.rightCup.x,
+          assembledPositions.rightCup.y,
+          assembledPositions.rightCup.z,
         ]}
         onPointerOver={(e) => {
           e.stopPropagation();
           setHoveredPart('rightCup');
-          if (!isExploded) {
+          if (headphoneState === 'assembled') {
             onSetCursorMode('click', 'DISASSEMBLE');
-          } else {
+          } else if (headphoneState === 'exploded') {
             onSetCursorMode('open', 'OPEN MUSIC');
             setActiveDestination('music');
           }
@@ -276,25 +307,28 @@ export const Headphones: React.FC<HeadphonesProps> = ({
         onClick={(e) => handleCupClick('right', e)}
       >
         <EarCupPart
-          ref={rightCupRef}
           side="right"
           isHovered={hoveredPart === 'rightCup' || activeDestination === 'music'}
         />
       </group>
 
-      {/* Wired Audio Cable Part */}
+      {/* 
+        Child Group: CableGroup
+        Initial position: assembledPositions.cable = (0, 0, 0)
+      */}
       <group
+        ref={cableGroupRef}
         position={[
-          REST_TRANSFORMS.cable.x,
-          REST_TRANSFORMS.cable.y,
-          REST_TRANSFORMS.cable.z,
+          assembledPositions.cable.x,
+          assembledPositions.cable.y,
+          assembledPositions.cable.z,
         ]}
         onPointerOver={(e) => {
           e.stopPropagation();
           setHoveredPart('cable');
-          if (!isExploded) {
+          if (headphoneState === 'assembled') {
             onSetCursorMode('click', 'DISASSEMBLE');
-          } else {
+          } else if (headphoneState === 'exploded') {
             onSetCursorMode('rotate', 'ROTATE');
           }
         }}
@@ -304,13 +338,10 @@ export const Headphones: React.FC<HeadphonesProps> = ({
         }}
         onClick={(e) => {
           e.stopPropagation();
-          if (!isExploded) onToggleExplode();
+          if (headphoneState === 'assembled') onTriggerExplode();
         }}
       >
-        <WiredCablePart
-          ref={cableRef}
-          isHovered={hoveredPart === 'cable'}
-        />
+        <WiredCablePart isHovered={hoveredPart === 'cable'} />
       </group>
     </group>
   );

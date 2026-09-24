@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { RotateCcw, Volume2, Info, X } from 'lucide-react';
 import { PORTFOLIO_CONFIG } from '../config/portfolio';
-import { CursorMode } from '../types';
+import { CursorMode, HeadphoneState } from '../types';
 
 interface UIProps {
-  isExploded: boolean;
-  onToggleExplode: () => void;
+  headphoneState: HeadphoneState;
   onReset: () => void;
   onSetCursorMode: (mode: CursorMode, text?: string | null) => void;
   onOpenFilms: () => void;
@@ -13,8 +12,7 @@ interface UIProps {
 }
 
 export const UI: React.FC<UIProps> = ({
-  isExploded,
-  onToggleExplode,
+  headphoneState,
   onReset,
   onSetCursorMode,
   onOpenFilms,
@@ -22,6 +20,7 @@ export const UI: React.FC<UIProps> = ({
 }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const artist = PORTFOLIO_CONFIG.artist;
+  const isExploded = headphoneState === 'exploded';
 
   return (
     <div className="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between p-6 sm:p-8 lg:p-10">
@@ -36,12 +35,12 @@ export const UI: React.FC<UIProps> = ({
         <button
           type="button"
           onClick={() => {
-            if (isExploded) onReset();
+            if (headphoneState === 'exploded') onReset();
           }}
           className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
           aria-label="SARANG Portfolio — Click to reset scene"
           onMouseEnter={() => {
-            if (isExploded) onSetCursorMode('reconstruct', 'RESET');
+            if (headphoneState === 'exploded') onSetCursorMode('reconstruct', 'RESET');
           }}
           onMouseLeave={() => onSetCursorMode('default')}
         >
@@ -54,34 +53,38 @@ export const UI: React.FC<UIProps> = ({
         <div className="hidden sm:flex items-center gap-3 text-xs tracking-widest uppercase text-[#726e66] font-medium">
           <span>{artist.title}</span>
           <span aria-hidden="true" className="text-[#c2beb4]">·</span>
-          <span>{isExploded ? 'EXPLODED VIEW' : 'PHYSICAL MODEL'}</span>
+          <span>{headphoneState === 'exploded' ? 'EXPLODED VIEW' : 'ASSEMBLED MODEL'}</span>
         </div>
 
         {/* Zone 3: Primary actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Quick Direct Destination Links for Accessible Navigation */}
-          <button
-            type="button"
-            onClick={onOpenFilms}
-            onMouseEnter={() => onSetCursorMode('open', 'LETTERBOXD')}
-            onMouseLeave={() => onSetCursorMode('default')}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold tracking-wider uppercase text-[#3f3c36] hover:text-[#1c1b18] hover:bg-[#1c1b18]/5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
-          >
-            <span>[F] Films</span>
-          </button>
+          {/* Direct Destination Links (when exploded) */}
+          {headphoneState === 'exploded' && (
+            <>
+              <button
+                type="button"
+                onClick={onOpenFilms}
+                onMouseEnter={() => onSetCursorMode('open', 'LETTERBOXD')}
+                onMouseLeave={() => onSetCursorMode('default')}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold tracking-wider uppercase text-[#3f3c36] hover:text-[#1c1b18] hover:bg-[#1c1b18]/5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
+              >
+                <span>[F] Films</span>
+              </button>
 
-          <button
-            type="button"
-            onClick={onOpenMusic}
-            onMouseEnter={() => onSetCursorMode('open', 'INSTAGRAM')}
-            onMouseLeave={() => onSetCursorMode('default')}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold tracking-wider uppercase text-[#3f3c36] hover:text-[#1c1b18] hover:bg-[#1c1b18]/5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
-          >
-            <span>[M] Music</span>
-          </button>
+              <button
+                type="button"
+                onClick={onOpenMusic}
+                onMouseEnter={() => onSetCursorMode('open', 'INSTAGRAM')}
+                onMouseLeave={() => onSetCursorMode('default')}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold tracking-wider uppercase text-[#3f3c36] hover:text-[#1c1b18] hover:bg-[#1c1b18]/5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
+              >
+                <span>[M] Music</span>
+              </button>
+            </>
+          )}
 
-          {/* Reset / Explode Toggle Button */}
-          {isExploded ? (
+          {/* Reset Action (only available when exploded) */}
+          {headphoneState === 'exploded' && (
             <button
               type="button"
               onClick={onReset}
@@ -92,17 +95,6 @@ export const UI: React.FC<UIProps> = ({
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reconstruct [Esc]</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onToggleExplode}
-              onMouseEnter={() => onSetCursorMode('click', 'DISASSEMBLE')}
-              onMouseLeave={() => onSetCursorMode('default')}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold tracking-widest uppercase border border-[#1c1b18]/25 text-[#1c1b18] hover:bg-[#1c1b18] hover:text-white rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#1c1b18]"
-              aria-label="Disassemble headphone into destinations"
-            >
-              <span>Disassemble</span>
             </button>
           )}
 
@@ -139,7 +131,7 @@ export const UI: React.FC<UIProps> = ({
         {/* Minimal instruction kicker */}
         <div className="absolute bottom-28 sm:bottom-24 flex flex-col items-center text-center space-y-2 pointer-events-auto">
           <p className="text-xs sm:text-sm font-medium tracking-[0.25em] text-[#33312c] uppercase">
-            Drag to Rotate · Click Object to Disassemble
+            Drag to Rotate · Click Headphone to Disassemble
           </p>
           <div className="flex items-center gap-2 text-[11px] text-[#78746c] font-mono">
             <span>Left Cup: Films</span>
@@ -160,16 +152,20 @@ export const UI: React.FC<UIProps> = ({
             <span>Acoustic Interface</span>
           </span>
           <span aria-hidden="true" className="text-[#c2beb4]">·</span>
-          <span>High-Fidelity 3D Audio Object</span>
+          <span>Complete 3D Audio Model</span>
         </div>
 
         {/* Keyboard shortcut guide */}
         <div className="flex items-center gap-2 text-[10px] tracking-wider uppercase font-mono text-[#827d73]">
           <span className="hidden md:inline">Rotate: [Arrow Keys]</span>
           <span className="hidden md:inline" aria-hidden="true">·</span>
-          <span>Explode: [Space / Enter]</span>
-          <span aria-hidden="true">·</span>
-          <span>Reset: [Esc]</span>
+          <span>{headphoneState === 'exploded' ? 'Reconstruct: [Esc]' : 'Disassemble: [Click / Space]'}</span>
+          {headphoneState === 'exploded' && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>[F] Films · [M] Music</span>
+            </>
+          )}
         </div>
       </footer>
 
@@ -220,7 +216,7 @@ export const UI: React.FC<UIProps> = ({
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-[#88837a]">Physical Object:</span>
-                <span className="font-medium text-[#1c1b18]">Realistic Studio Headphone Assembly</span>
+                <span className="font-medium text-[#1c1b18]">Complete White Wired Headphone</span>
               </div>
             </div>
 
@@ -239,3 +235,4 @@ export const UI: React.FC<UIProps> = ({
     </div>
   );
 };
+

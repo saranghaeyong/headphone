@@ -2,11 +2,13 @@ import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { ContactShadows, PerspectiveCamera, Environment } from '@react-three/drei';
 import { Headphones } from './Headphones';
-import { CursorMode, ActiveDestination } from '../types';
+import { CursorMode, ActiveDestination, HeadphoneState } from '../types';
 
 interface SceneProps {
-  isExploded: boolean;
-  onToggleExplode: () => void;
+  headphoneState: HeadphoneState;
+  onTriggerExplode: () => void;
+  onTriggerReset: () => void;
+  onAnimationFinished: (nextState: 'assembled' | 'exploded') => void;
   onOpenFilms: () => void;
   onOpenMusic: () => void;
   onSetCursorMode: (mode: CursorMode, text?: string | null) => void;
@@ -18,8 +20,10 @@ interface SceneProps {
 }
 
 export const Scene: React.FC<SceneProps> = ({
-  isExploded,
-  onToggleExplode,
+  headphoneState,
+  onTriggerExplode,
+  onTriggerReset,
+  onAnimationFinished,
   onOpenFilms,
   onOpenMusic,
   onSetCursorMode,
@@ -90,8 +94,10 @@ export const Scene: React.FC<SceneProps> = ({
 
         <Suspense fallback={null}>
           <Headphones
-            isExploded={isExploded}
-            onToggleExplode={onToggleExplode}
+            headphoneState={headphoneState}
+            onTriggerExplode={onTriggerExplode}
+            onTriggerReset={onTriggerReset}
+            onAnimationFinished={onAnimationFinished}
             onOpenFilms={onOpenFilms}
             onOpenMusic={onOpenMusic}
             onSetCursorMode={onSetCursorMode}
@@ -103,7 +109,7 @@ export const Scene: React.FC<SceneProps> = ({
 
           {/* Soft natural studio shadow plane underneath the headphone */}
           <ContactShadows
-            position={[0, isExploded ? -2.7 : -2.3, 0]}
+            position={[0, headphoneState === 'exploded' ? -2.7 : -2.3, 0]}
             opacity={0.32}
             scale={11}
             blur={2.4}
@@ -115,3 +121,4 @@ export const Scene: React.FC<SceneProps> = ({
     </div>
   );
 };
+

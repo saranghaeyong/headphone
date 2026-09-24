@@ -1,3 +1,5 @@
+export type HeadphoneState = 'assembled' | 'exploding' | 'exploded';
+
 export type CursorMode = 'default' | 'rotate' | 'open' | 'click' | 'reconstruct' | 'drag';
 
 export type ActiveDestination = null | 'films' | 'music';
@@ -8,8 +10,3 @@ export interface HeadphonePartTransform {
   scale: [number, number, number];
 }
 
-export interface ExplosionProgress {
-  value: number; // 0 = assembled, 1 = fully exploded
-}
-
-export type SceneState = 'idle' | 'exploding' | 'exploded' | 'reconstructing';
