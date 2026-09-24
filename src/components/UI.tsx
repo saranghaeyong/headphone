@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, Volume2, VolumeX, Info, X } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX, Info, X, Sun, Moon, Waves } from 'lucide-react';
 import { PORTFOLIO_CONFIG } from '../config/portfolio';
 import { CursorMode, HeadphoneState } from '../types';
 import { acousticEngine } from '../utils/acousticEngine';
@@ -21,8 +21,41 @@ export const UI: React.FC<UIProps> = ({
 }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isMuted, setIsMuted] = useState(acousticEngine.getIsMuted());
+  const [isDark, setIsDark] = useState(() =>
+    typeof window !== 'undefined' && localStorage.getItem('sarang-theme') === 'dark'
+  );
+  const [ambientActive, setAmbientActive] = useState(acousticEngine.getIsAmbientActive());
   const artist = PORTFOLIO_CONFIG.artist;
   const isExploded = headphoneState === 'exploded';
+
+  React.useEffect(() => {
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+    localStorage.setItem('sarang-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  React.useEffect(() => {
+    const startOnFirstGesture = () => {
+      if (!acousticEngine.getIsMuted() && !acousticEngine.getIsAmbientActive()) {
+        acousticEngine.startAmbient();
+        setAmbientActive(true);
+      }
+    };
+    window.addEventListener('pointerdown', startOnFirstGesture, { once: true });
+    window.addEventListener('keydown', startOnFirstGesture, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', startOnFirstGesture);
+      window.removeEventListener('keydown', startOnFirstGesture);
+    };
+  }, []);
+
+  const handleToggleAmbient = () => {
+    const active = acousticEngine.toggleAmbient();
+    setAmbientActive(active);
+    if (active && isMuted) {
+      acousticEngine.setMuted(false);
+      setIsMuted(false);
+    }
+  };
 
   const handleToggleSound = () => {
     const nextMuted = acousticEngine.toggleMute();
@@ -122,6 +155,30 @@ export const UI: React.FC<UIProps> = ({
             ) : (
               <Volume2 className="w-4 h-4" />
             )}
+          </button>
+
+          {/* Ambient relaxation music */}
+          <button
+            type="button"
+            onClick={handleToggleAmbient}
+            aria-label={ambientActive ? 'Pause ambient relaxation music' : 'Play ambient relaxation music'}
+            className="p-2 text-[#5a564f] hover:text-[#1c1b18] hover:bg-[#1c1b18]/5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
+            onMouseEnter={() => onSetCursorMode('open', ambientActive ? 'PAUSE' : 'AMBIENT')}
+            onMouseLeave={() => onSetCursorMode('default')}
+          >
+            <Waves className={`w-4 h-4 ${ambientActive ? 'opacity-100' : 'opacity-45'}`} />
+          </button>
+
+          {/* Light / Dark mode */}
+          <button
+            type="button"
+            onClick={() => setIsDark((current) => !current)}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="p-2 text-[#5a564f] hover:text-[#1c1b18] hover:bg-[#1c1b18]/5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
+            onMouseEnter={() => onSetCursorMode('open', isDark ? 'LIGHT' : 'DARK')}
+            onMouseLeave={() => onSetCursorMode('default')}
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
           {/* About / Info Modal Button */}
