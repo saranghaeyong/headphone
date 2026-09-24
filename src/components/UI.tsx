@@ -149,11 +149,6 @@ export const UI: React.FC<UIProps> = ({
             : 'opacity-100 scale-100'
         }`}
       >
-        {/* Large Editorial Name Watermark behind headphone */}
-        <h1 className="font-serif-title text-[14vw] sm:text-[16vw] font-normal tracking-[0.25em] text-[#1c1b18]/[0.07] uppercase pl-[0.25em] leading-none text-center">
-          SARANG
-        </h1>
-
         {/* Minimal instruction kicker */}
         <div className="absolute bottom-28 sm:bottom-24 flex flex-col items-center text-center space-y-2 pointer-events-auto">
           <p className="text-xs sm:text-sm font-medium tracking-[0.25em] text-[#33312c] uppercase">
