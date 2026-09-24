@@ -199,7 +199,7 @@ export const UI: React.FC<UIProps> = ({
       {isExploded && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <a
-            href="https://srnportfolio.vercel.app/"
+            href="https://srnshowcase.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             onMouseEnter={() => onSetCursorMode('open', 'VISIT PORTFOLIO')}
