@@ -1,0 +1,179 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Scene } from './components/Scene';
+import { NavigationObject } from './components/NavigationObject';
+import { UI } from './components/UI';
+import { CustomCursor } from './components/CustomCursor';
+import { LoadingScreen } from './components/LoadingScreen';
+import { PORTFOLIO_CONFIG } from './config/portfolio';
+import { CursorMode, ActiveDestination } from './types';
+
+export default function App() {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(25);
+  const [isExploded, setIsExploded] = useState(false);
+  const [activeDestination, setActiveDestination] = useState<ActiveDestination>(null);
+  const [cursorMode, setCursorMode] = useState<CursorMode>('default');
+  const [cursorText, setCursorText] = useState<string | null>(null);
+  const [keyboardRot, setKeyboardRot] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Keyboard rotation interval tracker
+  const activeKeys = useRef<{ [key: string]: boolean }>({});
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Subtle loading sequence for the 3D asset
+  useEffect(() => {
+    const p1 = setTimeout(() => setLoadProgress(65), 250);
+    const p2 = setTimeout(() => setLoadProgress(95), 550);
+    const p3 = setTimeout(() => {
+      setLoadProgress(100);
+      setIsLoaded(true);
+    }, 850);
+
+    return () => {
+      clearTimeout(p1);
+      clearTimeout(p2);
+      clearTimeout(p3);
+    };
+  }, []);
+
+  const handleOpenFilms = useCallback(() => {
+    window.open(PORTFOLIO_CONFIG.destinations.films.url, '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const handleOpenMusic = useCallback(() => {
+    window.open(PORTFOLIO_CONFIG.destinations.music.url, '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const handleToggleExplode = useCallback(() => {
+    setIsExploded((prev) => !prev);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setIsExploded(false);
+    setActiveDestination(null);
+  }, []);
+
+  const handleSetCursorMode = useCallback((mode: CursorMode, text?: string | null) => {
+    setCursorMode(mode);
+    setCursorText(text ?? null);
+  }, []);
+
+  // Keyboard Accessibility:
+  // - Arrow keys rotate headphone
+  // - Enter / Space triggers explosion
+  // - Escape resets scene
+  // - F opens Films
+  // - M opens Music
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      activeKeys.current[e.key] = true;
+
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        handleToggleExplode();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleReset();
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        handleOpenFilms();
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        handleOpenMusic();
+      }
+
+      // Check arrows
+      let kx = 0;
+      let ky = 0;
+      if (activeKeys.current['ArrowUp']) kx -= 1;
+      if (activeKeys.current['ArrowDown']) kx += 1;
+      if (activeKeys.current['ArrowLeft']) ky -= 1;
+      if (activeKeys.current['ArrowRight']) ky += 1;
+
+      setKeyboardRot({ x: kx, y: ky });
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      activeKeys.current[e.key] = false;
+
+      let kx = 0;
+      let ky = 0;
+      if (activeKeys.current['ArrowUp']) kx -= 1;
+      if (activeKeys.current['ArrowDown']) kx += 1;
+      if (activeKeys.current['ArrowLeft']) ky -= 1;
+      if (activeKeys.current['ArrowRight']) ky += 1;
+
+      setKeyboardRot({ x: kx, y: ky });
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [handleToggleExplode, handleReset, handleOpenFilms, handleOpenMusic]);
+
+  return (
+    <main className="relative w-screen h-screen overflow-hidden bg-paper select-none">
+      <h1 className="sr-only">
+        SARANG — Interactive 3D Portfolio & Acoustic Navigation Object
+      </h1>
+
+      {/* Subtle Editorial Loading Screen */}
+      <LoadingScreen progress={loadProgress} isLoaded={isLoaded} />
+
+      {/* Custom Precision Cursor */}
+      <CustomCursor mode={cursorMode} hoverText={cursorText} />
+
+      {/* Primary 3D Spatial Canvas Scene */}
+      <Scene
+        isExploded={isExploded}
+        onToggleExplode={handleToggleExplode}
+        onOpenFilms={handleOpenFilms}
+        onOpenMusic={handleOpenMusic}
+        onSetCursorMode={handleSetCursorMode}
+        activeDestination={activeDestination}
+        setActiveDestination={setActiveDestination}
+        keyboardRot={keyboardRot}
+        isMobile={isMobile}
+      />
+
+      {/* 2D/3D Destination Cards Layer (FILMS & MUSIC) */}
+      <NavigationObject
+        isExploded={isExploded}
+        activeDestination={activeDestination}
+        setActiveDestination={setActiveDestination}
+        onSetCursorMode={handleSetCursorMode}
+        onOpenFilms={handleOpenFilms}
+        onOpenMusic={handleOpenMusic}
+        isMobile={isMobile}
+      />
+
+      {/* Top Bar, Hero Name, and Bottom Accessibility Footer */}
+      <UI
+        isExploded={isExploded}
+        onToggleExplode={handleToggleExplode}
+        onReset={handleReset}
+        onSetCursorMode={handleSetCursorMode}
+        onOpenFilms={handleOpenFilms}
+        onOpenMusic={handleOpenMusic}
+      />
+    </main>
+  );
+}
