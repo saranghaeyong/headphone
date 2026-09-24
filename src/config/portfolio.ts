@@ -53,7 +53,7 @@ export interface PortfolioConfig {
 export const PORTFOLIO_CONFIG: PortfolioConfig = {
   artist: {
     name: 'SARANG',
-    title: 'CINEMA & SOUND CURATOR',
+    title: 'PLAYLIST BGM',
     location: 'SEOUL / TOKYO / WORLD',
     year: '2026',
     tagline: 'Physical navigation through soundscapes and motion pictures.',
