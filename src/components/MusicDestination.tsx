@@ -81,7 +81,7 @@ export const MusicDestination: React.FC<MusicDestinationProps> = ({
 
         <div className="mt-5 pt-4 border-t border-[#1c1b18]/6 space-y-2">
           <div className="text-[10px] uppercase tracking-widest text-[#9a958b] font-medium">
-            Recent Addicted Songs
+            Favourite Songs
           </div>
           <div className="space-y-1.5">
             {musicData.featuredWorks.slice(0, 2).map((item, idx) => (
