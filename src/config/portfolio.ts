@@ -89,11 +89,11 @@ export const PORTFOLIO_CONFIG: PortfolioConfig = {
       buttonLabel: 'OPEN LETTERBOXD',
       url: 'https://boxd.it/c3cfd',
       shortcutKey: 'F',
-      description: 'A curated personal film diary, critical analyses, 35mm film retrospectives, and audiovisual essays.',
+      description: 'A passionate world cinema lover.',
       tags: ['Film Diary', 'Cinematography', '35mm Archives', 'Reviews', 'Letterboxd HQ'],
       featuredWorks: [
-        { title: 'In the Mood for Love', year: '2000', category: 'Wong Kar-wai', note: 'Color theory & rhythm' },
-        { title: 'Drive My Car', year: '2021', category: 'Ryusuke Hamaguchi', note: 'Acoustic grief in transit' },
+        { title: 'Miracle in Cell No. 7', year: '2013', category: 'Korean Cinema', note: '' },
+        { title: 'Transformers', year: '2007', category: 'Action / Sci-Fi', note: '' },
         { title: 'Decision to Leave', year: '2022', category: 'Park Chan-wook', note: 'Symphonic obsession' },
         { title: 'Yi Yi', year: '2000', category: 'Edward Yang', note: 'Quiet human architecture' }
       ]
