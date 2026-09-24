@@ -63,3 +63,63 @@
   }
 }
 
+
+
+/* Dark mode — keeps the editorial interface readable while preserving the 3D model */
+html[data-theme="dark"] body {
+  background-color: #11110f;
+  color: #f1eee7;
+}
+
+html[data-theme="dark"] .bg-paper {
+  background-color: #11110f !important;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 0);
+}
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] [class*="bg-white/"] {
+  background-color: rgba(28, 27, 24, 0.9) !important;
+}
+
+html[data-theme="dark"] [class*="text-[#1c1b18]"],
+html[data-theme="dark"] [class*="text-[#2d2a26]"],
+html[data-theme="dark"] [class*="text-[#33312c]"],
+html[data-theme="dark"] [class*="text-[#3a3733]"],
+html[data-theme="dark"] [class*="text-[#3f3c36]"] {
+  color: #eeeae2 !important;
+}
+
+html[data-theme="dark"] [class*="text-[#57534c]"],
+html[data-theme="dark"] [class*="text-[#5a564f]"],
+html[data-theme="dark"] [class*="text-[#726e66]"],
+html[data-theme="dark"] [class*="text-[#78746c]"],
+html[data-theme="dark"] [class*="text-[#827d73]"],
+html[data-theme="dark"] [class*="text-[#88837a]"],
+html[data-theme="dark"] [class*="text-[#9a958b]"] {
+  color: #aaa59b !important;
+}
+
+html[data-theme="dark"] [class*="border-[#1c1b18]"] {
+  border-color: rgba(238, 234, 226, 0.13) !important;
+}
+
+html[data-theme="dark"] [class*="border-[#c2beb4]"] {
+  border-color: rgba(238, 234, 226, 0.18) !important;
+}
+
+html[data-theme="dark"] [class*="bg-[#1c1b18]"] {
+  background-color: #eeeae2 !important;
+  color: #171614 !important;
+}
+
+html[data-theme="dark"] [class*="hover:bg-[#32302b]"]:hover {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="dark"] [class*="text-white"] {
+  color: #171614 !important;
+}
+
+html[data-theme="dark"] [class*="shadow-"] {
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.28) !important;
+}
