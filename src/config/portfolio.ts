@@ -27,12 +27,7 @@ export interface PortfolioConfig {
       shortcutKey: string;
       description: string;
       tags: string[];
-      featuredWorks: Array<{
-        title: string;
-        year: string;
-        category: string;
-        note: string;
-      }>;
+      featuredWorks: Array<{ title: string; year: string; category: string; note: string; }>;
     };
     music: {
       id: 'music';
@@ -44,26 +39,10 @@ export interface PortfolioConfig {
       shortcutKey: string;
       description: string;
       tags: string[];
-      featuredWorks: Array<{
-        title: string;
-        type: string;
-        duration: string;
-        note: string;
-      }>;
+      featuredWorks: Array<{ title: string; type: string; duration: string; note: string; }>;
     };
   };
   headphoneModel: {
-    /**
-     * GLB / GLTF MODEL CONFIGURATION:
-     * -------------------------------------------------------------
-     * If you have a custom 3D headphone .glb file (e.g. from Blender),
-     * 1. Place the file inside `/public/models/headphone.glb`
-     * 2. Change `useCustomGLB` to `true`
-     * 3. Provide the path in `glbPath`: '/models/headphone.glb'
-     *
-     * If `useCustomGLB` is `false` or the GLB fails to load,
-     * the app uses the built-in procedural high-fidelity 3D headphone model.
-     */
     useCustomGLB: boolean;
     glbPath: string | null;
     scale: number;
@@ -89,7 +68,7 @@ export const PORTFOLIO_CONFIG: PortfolioConfig = {
       buttonLabel: 'OPEN LETTERBOXD',
       url: 'https://boxd.it/c3cfd',
       shortcutKey: 'F',
-      description: 'A passionate world cinema lover.',
+      description: 'A passionate cinephile with a love for films from every corner of the world. I’m here to discover unfamiliar stories, revisit old favourites, and get lost in the magic of cinema.',
       tags: ['Film Diary', 'Cinematography', '35mm Archives', 'Reviews', 'Letterboxd HQ'],
       featuredWorks: [
         { title: 'Miracle in Cell No. 7', year: '2013', category: 'Korean Cinema', note: '' },
@@ -117,10 +96,6 @@ export const PORTFOLIO_CONFIG: PortfolioConfig = {
     }
   },
   headphoneModel: {
-    /**
-     * Set to true and set glbPath when you want to load a custom .glb file
-     * E.g. glbPath: '/models/my_headphone.glb'
-     */
     useCustomGLB: false,
     glbPath: null,
     scale: 1.0,
