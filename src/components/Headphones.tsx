@@ -11,6 +11,7 @@ import {
   playExplosionAnimation,
   playReassembleAnimation,
 } from './ExplosionAnimation';
+import { acousticEngine } from '../utils/acousticEngine';
 import { CursorMode, ActiveDestination, HeadphoneState } from '../types';
 
 interface HeadphonesProps {
@@ -76,12 +77,15 @@ export const Headphones: React.FC<HeadphonesProps> = ({
 
       if (prevState === 'assembled') {
         // Explode outward: assembled -> exploding -> exploded
+        acousticEngine.playDisassembly();
         playExplosionAnimation(targets, () => {
           onAnimationFinished('exploded');
         });
       } else if (prevState === 'exploded') {
         // Return back: exploded -> exploding -> assembled
+        acousticEngine.playReassemblyWhoosh();
         playReassembleAnimation(targets, () => {
+          acousticEngine.playReassemblyLock();
           onAnimationFinished('assembled');
         });
       }
@@ -254,6 +258,7 @@ export const Headphones: React.FC<HeadphonesProps> = ({
         onPointerOver={(e) => {
           e.stopPropagation();
           setHoveredPart('leftCup');
+          acousticEngine.playMicroTick();
           if (headphoneState === 'assembled') {
             onSetCursorMode('click', 'DISASSEMBLE');
           } else if (headphoneState === 'exploded') {
@@ -290,6 +295,7 @@ export const Headphones: React.FC<HeadphonesProps> = ({
         onPointerOver={(e) => {
           e.stopPropagation();
           setHoveredPart('rightCup');
+          acousticEngine.playMicroTick();
           if (headphoneState === 'assembled') {
             onSetCursorMode('click', 'DISASSEMBLE');
           } else if (headphoneState === 'exploded') {

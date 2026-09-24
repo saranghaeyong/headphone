@@ -6,6 +6,7 @@ import { CustomCursor } from './components/CustomCursor';
 import { LoadingScreen } from './components/LoadingScreen';
 import { PORTFOLIO_CONFIG } from './config/portfolio';
 import { CursorMode, ActiveDestination, HeadphoneState } from './types';
+import { acousticEngine } from './utils/acousticEngine';
 
 export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -54,10 +55,12 @@ export default function App() {
   }, []);
 
   const handleOpenFilms = useCallback(() => {
+    acousticEngine.playMicroTick();
     window.open(PORTFOLIO_CONFIG.destinations.films.url, '_blank', 'noopener,noreferrer');
   }, []);
 
   const handleOpenMusic = useCallback(() => {
+    acousticEngine.playMicroTick();
     window.open(PORTFOLIO_CONFIG.destinations.music.url, '_blank', 'noopener,noreferrer');
   }, []);
 

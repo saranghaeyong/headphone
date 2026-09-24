@@ -2,6 +2,7 @@ import React from 'react';
 import { PORTFOLIO_CONFIG } from '../config/portfolio';
 import { ArrowUpRight } from 'lucide-react';
 import { CursorMode } from '../types';
+import { acousticEngine } from '../utils/acousticEngine';
 
 interface FilmDestinationProps {
   isExploded: boolean;
@@ -30,6 +31,7 @@ export const FilmDestination: React.FC<FilmDestinationProps> = ({
       }`}
       onMouseEnter={() => {
         onHover(true);
+        acousticEngine.playMicroTick();
         onSetCursorMode('open', 'OPEN LETTERBOXD');
       }}
       onMouseLeave={() => {

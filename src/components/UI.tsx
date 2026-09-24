@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { RotateCcw, Volume2, Info, X } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX, Info, X } from 'lucide-react';
 import { PORTFOLIO_CONFIG } from '../config/portfolio';
 import { CursorMode, HeadphoneState } from '../types';
+import { acousticEngine } from '../utils/acousticEngine';
 
 interface UIProps {
   headphoneState: HeadphoneState;
@@ -19,8 +20,17 @@ export const UI: React.FC<UIProps> = ({
   onOpenMusic,
 }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [isMuted, setIsMuted] = useState(acousticEngine.getIsMuted());
   const artist = PORTFOLIO_CONFIG.artist;
   const isExploded = headphoneState === 'exploded';
+
+  const handleToggleSound = () => {
+    const nextMuted = acousticEngine.toggleMute();
+    setIsMuted(nextMuted);
+    if (!nextMuted) {
+      acousticEngine.playMicroTick();
+    }
+  };
 
   return (
     <div className="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between p-6 sm:p-8 lg:p-10">
@@ -98,6 +108,22 @@ export const UI: React.FC<UIProps> = ({
             </button>
           )}
 
+          {/* Sound Mute / Unmute Button */}
+          <button
+            type="button"
+            onClick={handleToggleSound}
+            aria-label={isMuted ? 'Unmute acoustic cues' : 'Mute acoustic cues'}
+            className="p-2 text-[#5a564f] hover:text-[#1c1b18] hover:bg-[#1c1b18]/5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#1c1b18]"
+            onMouseEnter={() => onSetCursorMode('open', isMuted ? 'UNMUTE' : 'MUTE')}
+            onMouseLeave={() => onSetCursorMode('default')}
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 text-[#a39e94]" />
+            ) : (
+              <Volume2 className="w-4 h-4" />
+            )}
+          </button>
+
           {/* About / Info Modal Button */}
           <button
             type="button"
@@ -147,10 +173,19 @@ export const UI: React.FC<UIProps> = ({
       */}
       <footer className="w-full flex flex-col sm:flex-row items-center justify-between pt-4 pointer-events-auto border-t border-[#1c1b18]/8 text-[11px] text-[#726e66] gap-2">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 font-medium text-[#2d2a26]">
-            <Volume2 className="w-3.5 h-3.5 text-[#726e66]" />
-            <span>Acoustic Interface</span>
-          </span>
+          <button
+            type="button"
+            onClick={handleToggleSound}
+            className="flex items-center gap-1.5 font-medium text-[#2d2a26] hover:opacity-75 transition-opacity"
+            aria-label={isMuted ? 'Acoustic cues muted - click to enable' : 'Acoustic cues active - click to mute'}
+          >
+            {isMuted ? (
+              <VolumeX className="w-3.5 h-3.5 text-[#a39e94]" />
+            ) : (
+              <Volume2 className="w-3.5 h-3.5 text-[#726e66]" />
+            )}
+            <span>Acoustic Interface ({isMuted ? 'Muted' : 'Active'})</span>
+          </button>
           <span aria-hidden="true" className="text-[#c2beb4]">·</span>
           <span>Complete 3D Audio Model</span>
         </div>
