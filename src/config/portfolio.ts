@@ -88,13 +88,11 @@ export const PORTFOLIO_CONFIG: PortfolioConfig = {
       buttonLabel: 'OPEN INSTAGRAM',
       url: 'https://www.instagram.com/playlist_bgm/?stkn=bGZreTVkcXFxNHFj',
       shortcutKey: 'M',
-      description: 'Background score curation, ambient frequencies, analog tape loops, and atmospheric music archives.',
-      tags: ['BGM Curation', 'Tape Loops', 'Ambient Architecture', 'Instagram Series', 'Acoustic Space'],
+      description: 'Modern music lover. 🎧\\nGood music, quiet moments, happy mind.\\nThat’s my kind of peace. 🤍',
+      tags: ['Music Lover', 'Background Score Addict', 'Audio Player'],
       featuredWorks: [
-        { title: 'Late Night Rain in Kyoto', type: 'Ambient / Field', duration: '44:12', note: 'Subtle warm vinyl hiss' },
-        { title: 'Seoul Underground Cafe', type: 'Lo-Fi Jazz / Soul', duration: '58:00', note: 'Rhodes & muted drums' },
-        { title: 'Midnight Cinema Corridor', type: 'Drone / Neo-Classical', duration: '36:40', note: 'Cello harmonics' },
-        { title: 'Early Morning Fog', type: 'Minimalist Acoustic', duration: '41:15', note: 'Felted piano reverberation' }
+        { title: 'Nallaru Po From Dude', type: 'Song', duration: '2:15', note: '' },
+        { title: 'Theera Swasame From Chiththa', type: 'Song', duration: '3:27', note: '' },
       ]
     }
   },
