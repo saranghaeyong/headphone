@@ -69,10 +69,13 @@ export const PORTFOLIO_CONFIG: PortfolioConfig = {
       url: 'https://boxd.it/c3cfd',
       shortcutKey: 'F',
       description: 'A passionate cinephile with a love for films from every corner of the world. I’m here to discover unfamiliar stories, revisit old favourites, and get lost in the magic of cinema.',
-      tags: ['Film Diary', 'Cinematography', '35mm Archives', 'Reviews', 'Letterboxd HQ'],
+      tags: ['Film Diary', 'Cinema Lover', 'World Cinema'],
       featuredWorks: [
         { title: 'Miracle in Cell No. 7', year: '2013', category: 'Korean Cinema', note: '' },
         { title: 'Transformers', year: '2007', category: 'Action / Sci-Fi', note: '' },
+        { title: 'Musize', year: '2015', category: 'Favourite Movie', note: '' },
+        { title: '96', year: '2018', category: 'Favourite Movie', note: '' },
+        { title: 'Raid', year: '2011', category: 'Favourite Movie', note: '' },
         { title: 'Decision to Leave', year: '2022', category: 'Park Chan-wook', note: 'Symphonic obsession' },
         { title: 'Yi Yi', year: '2000', category: 'Edward Yang', note: 'Quiet human architecture' }
       ]
