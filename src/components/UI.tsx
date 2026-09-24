@@ -195,19 +195,21 @@ export const UI: React.FC<UIProps> = ({
         </div>
       </header>
 
-      {/* Center portfolio link */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-        <a
-          href="https://srnportfio.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          onMouseEnter={() => onSetCursorMode('open', 'VISIT PORTFOLIO')}
-          onMouseLeave={() => onSetCursorMode('default')}
-          className="pointer-events-auto px-6 py-3 text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase text-[#3f3c36] hover:text-[#1c1b18] border border-[#1c1b18]/15 hover:border-[#1c1b18]/30 bg-white/70 hover:bg-white/90 backdrop-blur-sm rounded-xl transition-all duration-200 shadow-sm"
-        >
-          CLICK HERE TO VISIT MY PORTFOLIO
-        </a>
-      </div>
+      {/* Center portfolio link — visible only after disassembly */}
+      {isExploded && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <a
+            href="https://srnportfio.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onMouseEnter={() => onSetCursorMode('open', 'VISIT PORTFOLIO')}
+            onMouseLeave={() => onSetCursorMode('default')}
+            className="pointer-events-auto px-6 py-3 text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase text-[#3f3c36] hover:text-[#1c1b18] border border-[#1c1b18]/15 hover:border-[#1c1b18]/30 bg-white/70 hover:bg-white/90 backdrop-blur-sm rounded-xl transition-all duration-200 shadow-sm"
+          >
+            CLICK HERE TO VISIT MY PORTFOLIO
+          </a>
+        </div>
+      )}
 
       {/* 
         INITIAL HERO WATERMARK & INSTRUCTIONS:
